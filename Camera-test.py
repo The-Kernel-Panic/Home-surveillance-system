@@ -1,7 +1,6 @@
 import face_recognition
 import cv2
 import numpy as np
-
 from twilio.rest import Client
 
 #Twilio
@@ -11,21 +10,17 @@ client = Client(account_sid, auth_token)
 
 
 def afterRec(name):
-    count = 0
-    while count < 1:
-        if name != "Unknown":
-            client.api.account.messages.create(
-            to="+919769010076", #Take user input for this
-            from_="+13345084553",
-            body="Found: {}".format(name))
-            count = count + 1 #So it only does whatever we want after the face is recognised only once.
-        elif name == "Unknown":
-               client.api.account.messages.create(
-               to="+919769010076", #Take user input for this
-               from_="+13345084553",
-               body="Unknown intruder, Watch the livestream: www.http://localhost/8000") # Add Pi's IP address later.
-               count = count + 1 #So it only does whatever we want after the face is recognised only once. 
-
+    if name != "Unknown":
+        client.api.account.messages.create(
+        to="+919769010076", #Take user input for this
+        from_="+13345084553",
+        body="Found: {}".format(name))
+    elif name == "Unknown":
+           client.api.account.messages.create(
+           to="+919769010076", #Take user input for this
+           from_="+13345084553",
+           body="Unknown intruder, Watch the livestream: www.http://192.168.1.105/8000")
+           
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
@@ -37,14 +32,20 @@ obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
 michael_image = face_recognition.load_image_file("/Users/pb/Desktop/My Folder/Raspberry Pi/Face Recognition/Michael_Reeves.jpg")
 michael_face_encoding = face_recognition.face_encodings(michael_image)[0]
 
+# Load a third sample picture and learn how to recognize it.
+piyusha_image = face_recognition.load_image_file("/Users/pb/Desktop/My Folder/Raspberry Pi/Face Recognition/Piyusha_Bhor.jpg")
+piyusha_face_encoding = face_recognition.face_encodings(piyusha_image)[0]
+
 # Create arrays of known face encodings and their names
 known_face_encodings = [
     obama_face_encoding,
-    michael_face_encoding
+    michael_face_encoding,
+    piyusha_face_encoding
 ]
 known_face_names = [
     "Barack Obama",
-    "Michael Reeves"
+    "Michael Reeves",
+    "Piyusha Bhor"
 ]
 
 # Initialize some variables
@@ -52,6 +53,7 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
+count = 0
 
 while True:
     # Grab a single frame of video
@@ -75,12 +77,6 @@ while True:
             matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
             name = "Unknown"
 
-            # # If a match was found in known_face_encodings, just use the first one.
-            # if True in matches:
-            #     first_match_index = matches.index(True)
-            #     name = known_face_names[first_match_index]
-
-            # Or instead, use the known face with the smallest distance to the new face
             face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
@@ -89,7 +85,6 @@ while True:
             face_names.append(name)
 
     process_this_frame = not process_this_frame
-
 
     # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
@@ -107,7 +102,9 @@ while True:
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-        afterRec(name) #This function does whatever we want to do once the face is found.
+        while count < 1:
+            afterRec(name) #This function does whatever we want to do once the face is found.
+            count = count + 1
 
     # Display the resulting image
     cv2.imshow('Video', frame)
@@ -119,4 +116,3 @@ while True:
 # Release handle to the webcam
 video_capture.release()
 cv2.destroyAllWindows()
-
