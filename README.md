@@ -4,9 +4,9 @@ A surveillance system.
 #How it works
 
 The Raspberry Pi runs a face recognition code. If a face is detected, the code determines if the person is known or unknown. 
-In case the person is known, the pi sends a message to the user with the name of the person found.
 In case the person is unknown, the pi sends a message to the user with the image of the person found.
-The apache server running on the pi is used to store these images and we can send the link of this image to the user via the Twilio API.
+In case the person is known, the pi sends a text message to the user with the name and image of the person found.
+The apache server running on the pi is used to store these images and sends a link of these images to the user via the Twilio API.
 
 
 #Requirements:
